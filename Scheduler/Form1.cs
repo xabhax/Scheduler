@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Office = NetOffice.OfficeApi;
-using Excel = NetOffice.ExcelApi;
-using NetOffice.ExcelApi.Enums;
-using NetOffice.ExcelApi.Tools.Utils;
 
 namespace Scheduler
 {
     public partial class Form1 : Form
     {
-        public string filename = Environment.CurrentDirectory + "\\export.xls";
-        public string techfile = Environment.CurrentDirectory + "\\techs.dat";
+        private readonly string techfile = Environment.CurrentDirectory + "\\techs.dat";
 
         public Form1()
         {
@@ -84,7 +81,7 @@ namespace Scheduler
                 else dataGridView1.Rows.Add(values[0], values[1], values[2], values[3], values[4], values[5]);
             }
             sr.Close();
-        } 
+        }
 
         private void StepSchedule(object sender, EventArgs e)
         {
@@ -95,12 +92,30 @@ namespace Scheduler
             {
                 string[] parsedData = line.Split('|');
 
-                if (parsedData[1] == "2") { newTechData.Add(parsedData[0] + "|" + "2" + "|" + "2" + "|" + "2" + "|" + "2" + "|" + "2" + "|"); }
-                if (parsedData[1] == "1") { newTechData.Add(parsedData[0] + "|" + "0" + "|" + "1" + "|" + "0" + "|" + "0" + "|" + "0" + "|"); }
-                if (parsedData[2] == "1") { newTechData.Add(parsedData[0] + "|" + "0" + "|" + "0" + "|" + "1" + "|" + "0" + "|" + "0" + "|"); }
-                if (parsedData[3] == "1") { newTechData.Add(parsedData[0] + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "1" + "|" + "0" + "|"); }
-                if (parsedData[4] == "1") { newTechData.Add(parsedData[0] + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "1" + "|"); }
-                if (parsedData[5] == "1") { newTechData.Add(parsedData[0] + "|" + "1" + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "0" + "|"); }
+                if (parsedData[1] == "2")
+                {
+                    newTechData.Add(parsedData[0] + "|" + "2" + "|" + "2" + "|" + "2" + "|" + "2" + "|" + "2" + "|");
+                }
+                if (parsedData[1] == "1")
+                {
+                    newTechData.Add(parsedData[0] + "|" + "0" + "|" + "1" + "|" + "0" + "|" + "0" + "|" + "0" + "|");
+                }
+                if (parsedData[2] == "1")
+                {
+                    newTechData.Add(parsedData[0] + "|" + "0" + "|" + "0" + "|" + "1" + "|" + "0" + "|" + "0" + "|");
+                }
+                if (parsedData[3] == "1")
+                {
+                    newTechData.Add(parsedData[0] + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "1" + "|" + "0" + "|");
+                }
+                if (parsedData[4] == "1")
+                {
+                    newTechData.Add(parsedData[0] + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "1" + "|");
+                }
+                if (parsedData[5] == "1")
+                {
+                    newTechData.Add(parsedData[0] + "|" + "1" + "|" + "0" + "|" + "0" + "|" + "0" + "|" + "0" + "|");
+                }
             }
 
             if (File.Exists(techfile))
@@ -115,58 +130,11 @@ namespace Scheduler
 
         private void ExportToExcel(object sender, EventArgs e)
         {
-            Excel.Application xlApp;
-            Excel.Workbook xlWorkBook;
-            Excel.Worksheet xlWorkSheet;
-            object misValue = System.Reflection.Missing.Value;
-
-            xlApp = new Excel.Application();
-            xlWorkBook = xlApp.Workbooks.Add(misValue);
-
-            int i = 0;
-            int j = 0;
-
-            for (i = 0; i <= dataGridView1.RowCount - 1; i++)
+            using (Bitmap bmp = new Bitmap(this.Width, this.Height))
             {
-                for (j = 0; j <= dataGridView1.ColumnCount - 1; j++)
-                {
-                    DataGridViewCell cell = dataGridView1[j, i];
-                    Excel.Worksheet.xlWorkSheet.Cells[i + 1, j + 1] = cell.Value;
-                }
+                this.DrawToBitmap(bmp, new Rectangle(Point.Empty, bmp.Size));
+                bmp.Save(Environment.CurrentDirectory + "\\test.jpg", ImageFormat.Png); // make sure path exists!
             }
-
-            xlWorkBook.SaveAs("csharp.net-informations.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
-            xlWorkBook.Close(true, misValue, misValue);
-            xlApp.Quit();
-
-            releaseObject(xlWorkSheet);
-            releaseObject(xlWorkBook);
-            releaseObject(xlApp);
-
-            MessageBox.Show("Excel file created , you can find the file c:\\csharp.net-informations.xls");
-        }
-
-        private void releaseObject(object obj)
-        {
-            try
-            {
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-                obj = null;
-            }
-            catch (Exception ex)
-            {
-                obj = null;
-                MessageBox.Show("Exception Occured while releasing object " + ex.ToString());
-            }
-            finally
-            {
-                GC.Collect();
-            }
-        }
-
-        private void ManageTechs(object sender, EventArgs e)
-        {
-
         }
     }
 }

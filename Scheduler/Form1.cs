@@ -4,6 +4,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Office = NetOffice.OfficeApi;
+using Excel = NetOffice.ExcelApi;
+using NetOffice.ExcelApi.Enums;
+using NetOffice.ExcelApi.Tools.Utils;
 
 namespace Scheduler
 {
@@ -84,7 +88,6 @@ namespace Scheduler
 
         private void StepSchedule(object sender, EventArgs e)
         {
-
             List<string> oldTechData = File.ReadAllLines(techfile).ToList();
             List<string> newTechData = new List<string>();
 
@@ -112,6 +115,53 @@ namespace Scheduler
 
         private void ExportToExcel(object sender, EventArgs e)
         {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Worksheet xlWorkSheet;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.Application();
+            xlWorkBook = xlApp.Workbooks.Add(misValue);
+
+            int i = 0;
+            int j = 0;
+
+            for (i = 0; i <= dataGridView1.RowCount - 1; i++)
+            {
+                for (j = 0; j <= dataGridView1.ColumnCount - 1; j++)
+                {
+                    DataGridViewCell cell = dataGridView1[j, i];
+                    Excel.Worksheet.xlWorkSheet.Cells[i + 1, j + 1] = cell.Value;
+                }
+            }
+
+            xlWorkBook.SaveAs("csharp.net-informations.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+
+            MessageBox.Show("Excel file created , you can find the file c:\\csharp.net-informations.xls");
+        }
+
+        private void releaseObject(object obj)
+        {
+            try
+            {
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+                obj = null;
+            }
+            catch (Exception ex)
+            {
+                obj = null;
+                MessageBox.Show("Exception Occured while releasing object " + ex.ToString());
+            }
+            finally
+            {
+                GC.Collect();
+            }
         }
 
         private void ManageTechs(object sender, EventArgs e)

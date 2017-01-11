@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Scheduler
@@ -133,7 +132,7 @@ namespace Scheduler
             using (Bitmap bmp = new Bitmap(this.Width, this.Height))
             {
                 this.DrawToBitmap(bmp, new Rectangle(Point.Empty, bmp.Size));
-                bmp.Save(Environment.CurrentDirectory + "\\test.jpg", ImageFormat.Png); // make sure path exists!
+                bmp.Save(Environment.CurrentDirectory + "\\test.jpg", ImageFormat.Png);
             }
         }
     }

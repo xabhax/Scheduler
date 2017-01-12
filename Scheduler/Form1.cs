@@ -11,8 +11,8 @@ namespace Scheduler
 {
     public partial class Form1 : Form
     {
-        private readonly string techfile = Environment.CurrentDirectory + "\\techs.dat";
-        private readonly string satfile = Environment.CurrentDirectory + "\\saturday.dat";
+        private readonly string _techfile = Environment.CurrentDirectory + "\\techs.dat";
+        private readonly string _satfile = Environment.CurrentDirectory + "\\saturday.dat";
 
         [DllImport("gdi32.dll", ExactSpelling = true, CharSet = CharSet.Auto, SetLastError = true)]
         private static extern bool BitBlt(IntPtr pHdc, int iX, int iY, int iWidth, int iHeight, IntPtr pHdcSource, int iXSource, int iYSource, System.Int32 dw);
@@ -124,7 +124,7 @@ namespace Scheduler
 
         private void StepSchedule(object sender, EventArgs e)
         {
-            List<string> oldTechData = File.ReadAllLines(techfile).ToList();
+            List<string> oldTechData = File.ReadAllLines(_techfile).ToList();
             List<string> newTechData = new List<string>();
 
             foreach (string line in oldTechData)
@@ -157,21 +157,21 @@ namespace Scheduler
                 }
             }
 
-            if (File.Exists(techfile))
+            if (File.Exists(_techfile))
             {
-                File.Delete(techfile);
+                File.Delete(_techfile);
             }
 
-            File.WriteAllLines(techfile, newTechData);
+            File.WriteAllLines(_techfile, newTechData);
 
             var sf = new StreamReader(Environment.CurrentDirectory + "\\saturday.dat");
 
             var saturdayteam = sf.ReadLine();
             sf.Close();
 
-            if (saturdayteam == "Team 1") { File.WriteAllText(satfile, "Team 2"); }
-            if (saturdayteam == "Team 2") { File.WriteAllText(satfile, "Team 3"); }
-            if (saturdayteam == "Team 3") { File.WriteAllText(satfile, "Team 1"); }
+            if (saturdayteam == "Team 1") { File.WriteAllText(_satfile, "Team 2"); }
+            if (saturdayteam == "Team 2") { File.WriteAllText(_satfile, "Team 3"); }
+            if (saturdayteam == "Team 3") { File.WriteAllText(_satfile, "Team 1"); }
 
             Application.Restart();
         }
@@ -195,6 +195,12 @@ namespace Scheduler
             iBitMap_gr.ReleaseHdc(iBitMap_hdc);
 
             ibitMap.Save(Environment.CurrentDirectory + "\\schedule.bmp", ImageFormat.Bmp);
+        }
+
+        private void ManageTechs(object sender, EventArgs e)
+        {
+            var ManageTechsForm = new ManageTechs();
+            ManageTechsForm.ShowDialog();
         }
     }
 }

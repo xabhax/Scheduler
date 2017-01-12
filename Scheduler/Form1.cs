@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Scheduler
@@ -11,6 +12,11 @@ namespace Scheduler
     public partial class Form1 : Form
     {
         private readonly string techfile = Environment.CurrentDirectory + "\\techs.dat";
+        private readonly string satfile = Environment.CurrentDirectory + "\\saturday.dat";
+
+        [DllImport("gdi32.dll", ExactSpelling = true, CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool BitBlt(IntPtr pHdc, int iX, int iY, int iWidth, int iHeight, IntPtr pHdcSource, int iXSource, int iYSource, System.Int32 dw);
+        private const int SRC = 0xCC0020;
 
         public Form1()
         {
@@ -19,7 +25,7 @@ namespace Scheduler
             FillDataGrid();
         }
 
-        public void SetupDataGrid()
+        private void SetupDataGrid()
         {
             // Create an unbound DataGridView by declaring a column count.
             dataGridView1.ColumnCount = 7;
@@ -44,10 +50,18 @@ namespace Scheduler
 
         private void FillDataGrid()
         {
-            var sr = new StreamReader(Environment.CurrentDirectory + "\\techs.dat");
             string[] values;
             var hours = "7:00 - 5:00";
+            var sathours = "7:00 - 5:00";
             var blank = "   ";
+            dataGridView1.ReadOnly = false;
+
+            var sr = new StreamReader(Environment.CurrentDirectory + "\\techs.dat");
+            var sf = new StreamReader(Environment.CurrentDirectory + "\\saturday.dat");
+
+            var saturdayteam = sf.ReadLine();
+
+            sf.Close();
 
             while (!sr.EndOfStream)
             {
@@ -74,12 +88,37 @@ namespace Scheduler
                 else if (values[5] == "2") values[5] = blank;
                 else values[5] = hours;
 
-                //if (values[6] == "1") { values[6] = "Off"; } else if (values[6] == "2") { values[6] = blank; } else { values[6] = hours; }
-
                 if (values[0] == "none") dataGridView1.Rows.Add("  ");
                 else dataGridView1.Rows.Add(values[0], values[1], values[2], values[3], values[4], values[5]);
             }
             sr.Close();
+
+            if (saturdayteam == "Team 1")
+            {
+                dataGridView1[6, 1].Value = sathours;
+                dataGridView1[6, 2].Value = sathours;
+                dataGridView1[6, 3].Value = sathours;
+                dataGridView1[6, 4].Value = sathours;
+                dataGridView1[6, 5].Value = sathours;
+            }
+
+            if (saturdayteam == "Team 2")
+            {
+                dataGridView1[6, 7].Value = sathours;
+                dataGridView1[6, 8].Value = sathours;
+                dataGridView1[6, 9].Value = sathours;
+                dataGridView1[6, 10].Value = sathours;
+                dataGridView1[6, 11].Value = sathours;
+            }
+
+            if (saturdayteam == "Team 3")
+            {
+                dataGridView1[6, 13].Value = sathours;
+                dataGridView1[6, 14].Value = sathours;
+                dataGridView1[6, 15].Value = sathours;
+                dataGridView1[6, 16].Value = sathours;
+                dataGridView1[6, 17].Value = sathours;
+            }
         }
 
         private void StepSchedule(object sender, EventArgs e)
@@ -124,16 +163,36 @@ namespace Scheduler
 
             File.WriteAllLines(techfile, newTechData);
 
+            var sf = new StreamReader(Environment.CurrentDirectory + "\\saturday.dat");
+
+            var saturdayteam = sf.ReadLine();
+            sf.Close();
+
+            if (saturdayteam == "Team 1") { File.WriteAllText(satfile, "Team 2"); }
+            if (saturdayteam == "Team 2") { File.WriteAllText(satfile, "Team 3"); }
+            if (saturdayteam == "Team 3") { File.WriteAllText(satfile, "Team 1"); }
+
             Application.Restart();
         }
 
         private void ExportToExcel(object sender, EventArgs e)
         {
-            using (Bitmap bmp = new Bitmap(this.Width, this.Height))
-            {
-                this.DrawToBitmap(bmp, new Rectangle(Point.Empty, bmp.Size));
-                bmp.Save(Environment.CurrentDirectory + "\\test.jpg", ImageFormat.Png);
-            }
+            DataGridView dg = dataGridView1;
+
+            dg.Refresh();
+            dg.Select();
+
+            Graphics g = dg.CreateGraphics();
+            Bitmap ibitMap = new Bitmap(dg.ClientSize.Width, dg.ClientSize.Height, g);
+            Graphics iBitMap_gr = Graphics.FromImage(ibitMap);
+            IntPtr iBitMap_hdc = iBitMap_gr.GetHdc();
+            IntPtr me_hdc = g.GetHdc();
+
+            BitBlt(iBitMap_hdc, 0, 0, dg.ClientSize.Width, dg.ClientSize.Height, me_hdc, 0, 0, SRC);
+            g.ReleaseHdc(me_hdc);
+            iBitMap_gr.ReleaseHdc(iBitMap_hdc);
+
+            ibitMap.Save(Environment.CurrentDirectory + "\\schedule.bmp", ImageFormat.Bmp);
         }
     }
 }

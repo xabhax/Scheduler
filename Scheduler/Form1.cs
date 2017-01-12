@@ -54,7 +54,6 @@ namespace Scheduler
             var hours = "7:00 - 5:00";
             var sathours = "7:00 - 5:00";
             var blank = "   ";
-            dataGridView1.ReadOnly = false;
 
             var sr = new StreamReader(Environment.CurrentDirectory + "\\techs.dat");
             var sf = new StreamReader(Environment.CurrentDirectory + "\\saturday.dat");
@@ -92,6 +91,8 @@ namespace Scheduler
                 else dataGridView1.Rows.Add(values[0], values[1], values[2], values[3], values[4], values[5]);
             }
             sr.Close();
+
+            dataGridView1.CurrentCell = null;
 
             if (saturdayteam == "Team 1")
             {
@@ -177,6 +178,7 @@ namespace Scheduler
 
         private void ExportToExcel(object sender, EventArgs e)
         {
+            //Answer to a StackOverflow Question
             DataGridView dg = dataGridView1;
 
             dg.Refresh();
